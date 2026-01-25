@@ -1,0 +1,5 @@
+/* Root container - allow full width for dashboard layout */
+#root {
+  width: 100%;
+  min-height: 100vh;
+}

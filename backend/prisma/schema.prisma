@@ -1,0 +1,134 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// User roles: STAFF (creates requests), ADMIN (first approval), MANAGER (final approval)
+model User {
+  id            String    @id
+  name          String
+  email         String    @unique
+  emailVerified Boolean   @default(false)
+  image         String?
+  active        Boolean   @default(false) // Needs admin approval
+  role          String    @default("STAFF") // STAFF, ADMIN, MANAGER
+  department    String?
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  sessions      Session[]
+  accounts      Account[]
+
+  // Cash requests created by this user (staff)
+  cashRequests  CashRequest[]
+
+  // Requests reviewed by this user (admin/manager)
+  adminReviews   CashRequest[] @relation("AdminReviewer")
+  managerReviews CashRequest[] @relation("ManagerReviewer")
+}
+
+model Session {
+  id        String   @id
+  expiresAt DateTime
+  token     String   @unique
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Account {
+  id                    String    @id
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Verification {
+  id         String   @id
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model Category {
+  id        String        @id @default(cuid())
+  name      String        @unique
+  active    Boolean       @default(true)
+  requests  CashRequest[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+}
+
+// Cash Request workflow:
+// 1. Staff creates request -> status: PENDING_ADMIN
+// 2. Admin approves -> status: PENDING_MANAGER
+// 3. Admin rejects -> status: REJECTED_BY_ADMIN
+// 4. Manager approves -> status: APPROVED
+// 5. Manager rejects -> status: REJECTED_BY_MANAGER
+model CashRequest {
+  id              String   @id @default(cuid())
+  requestNumber   String   @unique
+
+  // Request details
+  amount          Float
+  purpose         String
+  
+  // New Fields
+  categoryId      String
+  category        Category @relation(fields: [categoryId], references: [id])
+  
+  client          String?
+  site            String?
+  
+  // Payout Details
+  payoutMethod    String   // CASH, MOMO, BANK_TRANSFER
+  
+  // Account Details (Optional based on method)
+  accountName     String?
+  accountNumber   String?  // Or Momo number
+  bankName        String?  // Or Momo provider (MTN, Telecel, etc)
+  
+  description     String?
+  urgency         String   @default("NORMAL") // LOW, NORMAL, HIGH, URGENT
+  neededBy        DateTime?
+
+  // Status tracking
+  status          String   @default("PENDING_ADMIN")
+
+  // Requester (Staff)
+  requesterId     String
+  requester       User     @relation(fields: [requesterId], references: [id])
+
+  // Admin review
+  adminId         String?
+  admin           User?    @relation("AdminReviewer", fields: [adminId], references: [id])
+  adminComment    String?
+  adminReviewedAt DateTime?
+
+  // Manager review
+  managerId       String?
+  manager         User?    @relation("ManagerReviewer", fields: [managerId], references: [id])
+  managerComment  String?
+  managerReviewedAt DateTime?
+
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+}
