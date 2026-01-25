@@ -3,7 +3,8 @@
     "private": true,
     "scripts": {
         "dev": "npx concurrently \"npm run dev --prefix backend\" \"npm run dev --prefix webapp\"",
-        "install:all": "npm install --prefix webapp && cd backend && bun install"
+        "install:all": "npm install --prefix webapp && npm install --prefix backend",
+        "build": "npm run build --prefix webapp"
     },
     "dependencies": {
         "@neondatabase/serverless": "^1.0.2",
