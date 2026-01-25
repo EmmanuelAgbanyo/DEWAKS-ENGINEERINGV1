@@ -6,6 +6,7 @@
         "install:all": "npm install --prefix webapp && cd backend && bun install"
     },
     "dependencies": {
+        "@neondatabase/serverless": "^1.0.2",
         "build": "^0.1.4"
     }
 }

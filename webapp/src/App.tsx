@@ -18,6 +18,7 @@ import UsersPage from "@/routes/users";
 import CategoriesPage from "@/routes/categories";
 import ProfilePage from "@/routes/profile";
 import FinancesPage from "@/routes/finances";
+import CommentDemo from "@/routes/comments-demo";
 import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -117,6 +118,14 @@ const App = () => (
             element={
               <ProtectedRoute>
                 <FinancesPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/comments-demo"
+            element={
+              <ProtectedRoute>
+                <CommentDemo />
               </ProtectedRoute>
             }
           />

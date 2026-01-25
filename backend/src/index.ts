@@ -9,6 +9,7 @@ import { usersRouter } from "./routes/users";
 import { categoryRouter } from "./routes/categories";
 import { reportsRouter } from "./routes/reports";
 import { uploadRouter } from "./routes/upload";
+import { commentsRouter } from "./routes/comments";
 
 // Type the Hono app with user/session variables
 const app = new Hono<{
@@ -62,6 +63,7 @@ app.route("/api/users", usersRouter);
 app.route("/api/categories", categoryRouter);
 app.route("/api/reports", reportsRouter);
 app.route("/api/upload", uploadRouter);
+app.route("/api/comments", commentsRouter);
 
 import { serveStatic } from "@hono/node-server/serve-static";
 
