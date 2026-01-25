@@ -1,6 +1,0 @@
--- CreateTable
-CREATE TABLE "Comment" (
-    "id" TEXT NOT NULL PRIMARY KEY,
-    "comment" TEXT NOT NULL,
-    "createdAt" DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
-);
