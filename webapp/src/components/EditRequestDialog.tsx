@@ -12,15 +12,14 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { api } from "@/lib/api";
-import { CashRequest } from "@/lib/types";
+import { updateCashRequest, type DBCashRequest } from "@/lib/firebase-db";
 import { toast } from "sonner";
 
 interface EditRequestDialogProps {
-  request: CashRequest | null;
+  request: (DBCashRequest & { id: string }) | null;
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onSuccess: (updatedRequest: CashRequest) => void;
+  onSuccess: (updatedRequest?: any) => void;
 }
 
 export function EditRequestDialog({
@@ -58,12 +57,12 @@ export function EditRequestDialog({
 
     setIsSubmitting(true);
     try {
-      const updated = await api.put<CashRequest>(`/api/cash-requests/${request.id}`, {
+      await updateCashRequest(request.id, {
         amount: numAmount,
         purpose: purpose.trim(),
       });
       toast.success("Request updated successfully");
-      onSuccess(updated);
+      onSuccess();
       onOpenChange(false);
     } catch (error) {
       console.error("Failed to update request:", error);

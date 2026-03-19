@@ -2,11 +2,10 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Mail, ArrowRight, Loader2, Shield, Sparkles, Lock, Sun, Moon } from "lucide-react";
-import { authClient } from "@/lib/auth-client";
+import { signIn } from "@/lib/firebase-auth";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTheme } from "@/components/ThemeProvider";
-
 
 function LoginThemeToggle() {
   const { theme, toggleTheme } = useTheme();
@@ -39,19 +38,19 @@ export default function Login() {
     setError("");
 
     try {
-      const { error } = await authClient.signIn.email({
-        email: email.trim(),
-        password,
-      });
-
-      if (error) {
-        setError(error.message || "Invalid email or password");
-      } else {
-        navigate("/dashboard");
-      }
+      await signIn(email.trim(), password);
+      navigate("/dashboard");
     } catch (err: any) {
       console.error("Login failed:", err);
-      setError(err?.message || "An unexpected error occurred. Please try again.");
+      // Firebase error codes
+      const code = err?.code || "";
+      if (code === "auth/user-not-found" || code === "auth/wrong-password" || code === "auth/invalid-credential") {
+        setError("Invalid email or password");
+      } else if (code === "auth/too-many-requests") {
+        setError("Too many failed attempts. Please try again later.");
+      } else {
+        setError(err?.message || "An unexpected error occurred. Please try again.");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -145,7 +144,7 @@ export default function Login() {
               <div className="space-y-3">
                 <div className="flex items-center justify-between">
                   <label className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Secure Key</label>
-                  <Link to="/forgot-password" size="sm" className="text-xs font-black text-primary hover:text-accent transition-colors uppercase tracking-widest">Forgot?</Link>
+                  <Link to="/forgot-password" className="text-xs font-black text-primary hover:text-accent transition-colors uppercase tracking-widest">Forgot?</Link>
                 </div>
                 <div className="relative group">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-all duration-500" />
@@ -186,14 +185,29 @@ export default function Login() {
         </motion.div>
 
         {/* Footer */}
-        <div className="mt-12 text-center flex items-center justify-center gap-4">
-          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
-            &copy; {new Date().getFullYear()} Dewaks Engineering &bull; Pure Performance
-          </span>
-          <LoginThemeToggle />
+        <div className="mt-12 flex flex-col items-center justify-center gap-6">
+          <div className="flex items-center gap-4">
+            <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
+              &copy; {new Date().getFullYear()} Dewaks Engineering &bull; Pure Performance
+            </span>
+            <LoginThemeToggle />
+          </div>
+          
+          <div className="flex flex-col items-center justify-center gap-1.5 opacity-60 hover:opacity-100 transition-opacity">
+            <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
+              Powered by
+            </p>
+            <div className="flex items-center gap-1.5">
+              <div className="h-5 w-5 rounded md:rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[0_0_12px_rgba(var(--primary),0.4)]">
+                <span className="text-[10px] font-black text-white">N</span>
+              </div>
+              <span className="text-sm font-bold text-foreground bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                NexusByte Technologies
+              </span>
+            </div>
+          </div>
         </div>
       </div>
     </div>
   );
 }
-

@@ -10,50 +10,50 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { api } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
+import {
+  subscribeToAllUsers,
+  updateUser,
+  recordToArray,
+} from "@/lib/firebase-db";
 import { User, UserRole } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 
 export default function UsersPage() {
-  const [users, setUsers] = useState<User[]>([]);
-  const [currentUserId, setCurrentUserId] = useState<string | null>(null);
-  const [currentUserRole, setCurrentUserRole] = useState<string | null>(null);
+  const [users, setUsers] = useState<(User & { image?: string })[]>([]);
+  const { uid, userProfile } = useAuth();
+  const currentUserId = uid;
+  const currentUserRole = userProfile?.role || null;
   const [isLoading, setIsLoading] = useState(true);
   const [updatingUserId, setUpdatingUserId] = useState<string | null>(null);
   const { toast } = useToast();
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [usersData, currentUser] = await Promise.all([
-          api.get<User[]>("/api/users"),
-          api.get<User>("/api/users/me"),
-        ]);
-        setUsers(usersData);
-        setCurrentUserId(currentUser.id);
-        setCurrentUserRole(currentUser.role);
-      } catch (error) {
-        console.error("Failed to fetch users:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
+    const unsub = subscribeToAllUsers((data) => {
+      const arr = recordToArray(data).map(u => ({
+        id: u.id,
+        name: u.name,
+        email: u.email,
+        role: u.role,
+        active: u.active,
+        department: u.department,
+        createdAt: u.createdAt,
+      }));
+      setUsers(arr);
+      setIsLoading(false);
+    });
+    return () => unsub();
   }, []);
 
   const handleRoleChange = async (userId: string, newRole: string) => {
     setUpdatingUserId(userId);
     try {
-      const updated = await api.patch<User>(`/api/users/${userId}/role`, {
-        role: newRole,
-      });
-      setUsers((prev) =>
-        prev.map((u) => (u.id === userId ? { ...u, role: updated.role } : u))
-      );
+      await updateUser(userId, { role: newRole });
+      toast({ title: "Success", description: `Role updated to ${newRole}` });
     } catch (error) {
       console.error("Failed to update user role:", error);
+      toast({ title: "Error", description: "Failed to update role", variant: "destructive" });
     } finally {
       setUpdatingUserId(null);
     }
@@ -155,8 +155,7 @@ export default function UsersPage() {
                     onClick={async () => {
                       setUpdatingUserId(user.id);
                       try {
-                        await api.patch(`/api/users/${user.id}/approve`, { active: true });
-                        setUsers(prev => prev.map(u => u.id === user.id ? { ...u, active: true } : u));
+                        await updateUser(user.id, { active: true });
                         toast({ title: "User Approved", description: `${user.name} can now log in.` });
                       } catch (e) {
                         toast({ title: "Error", description: "Failed to approve user", variant: "destructive" });

@@ -24,8 +24,12 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { api } from "@/lib/api";
-import { CashRequest, statusLabels, statusColors, urgencyColors } from "@/lib/types";
+import {
+  subscribeToAllCashRequests,
+  recordToArray,
+  type DBCashRequest,
+} from "@/lib/firebase-db";
+import { statusLabels, statusColors, urgencyColors } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 const containerVariants = {
@@ -42,26 +46,20 @@ const itemVariants = {
 };
 
 export default function AllRequests() {
-  const [requests, setRequests] = useState<CashRequest[]>([]);
-  const [filteredRequests, setFilteredRequests] = useState<CashRequest[]>([]);
+  const [requests, setRequests] = useState<(DBCashRequest & { id: string })[]>([]);
+  const [filteredRequests, setFilteredRequests] = useState<(DBCashRequest & { id: string })[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const requestsData = await api.get<CashRequest[]>("/api/cash-requests/all");
-        setRequests(requestsData);
-        setFilteredRequests(requestsData);
-      } catch (error) {
-        console.error("Failed to fetch requests:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    fetchData();
+    const unsub = subscribeToAllCashRequests((data) => {
+      const arr = recordToArray(data);
+      arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setRequests(arr);
+      setIsLoading(false);
+    });
+    return () => unsub();
   }, []);
 
   useEffect(() => {
@@ -73,7 +71,7 @@ export default function AllRequests() {
         (r) =>
           r.requestNumber.toLowerCase().includes(query) ||
           r.purpose.toLowerCase().includes(query) ||
-          r.requester.name.toLowerCase().includes(query)
+          r.requesterName.toLowerCase().includes(query)
       );
     }
 
@@ -140,9 +138,9 @@ export default function AllRequests() {
     const rows = filteredRequests.map((r) => [
       r.requestNumber,
       new Date(r.createdAt).toLocaleDateString(),
-      r.requester.name,
+      r.requesterName,
       r.purpose,
-      r.category,
+      r.categoryName,
       r.amount.toString(),
       statusLabels[r.status],
       r.urgency,
@@ -377,9 +375,9 @@ export default function AllRequests() {
                             {request.purpose}
                           </p>
                           <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                            <span className="text-xs">By {request.requester.name}</span>
+                            <span className="text-xs">By {request.requesterName}</span>
                             <span className="text-muted-foreground/40">|</span>
-                            <span className="px-2 py-0.5 rounded-md bg-white/5 text-xs">{request.category.name}</span>
+                            <span className="px-2 py-0.5 rounded-md bg-white/5 text-xs">{request.categoryName}</span>
                           </div>
                         </div>
                         <div className="text-right flex items-center gap-4">

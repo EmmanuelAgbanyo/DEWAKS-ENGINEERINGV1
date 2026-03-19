@@ -30,10 +30,16 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { useToast } from "@/hooks/use-toast";
-import { api } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
+import {
+  subscribeToDashboardStats,
+  subscribeToAllCashRequests,
+  deleteAllCashRequests,
+  recordToArray,
+  type DBCashRequest,
+} from "@/lib/firebase-db";
 import {
   DashboardStats,
-  CashRequest,
   statusLabels,
   statusColors,
   UserRole,
@@ -43,8 +49,9 @@ import { Download, PieChart } from "lucide-react";
 
 export default function Dashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null);
-  const [requests, setRequests] = useState<CashRequest[]>([]);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [requests, setRequests] = useState<(DBCashRequest & { id: string })[]>([]);
+  const { uid, userProfile } = useAuth();
+  const userRole = userProfile?.role || null;
   const [isLoading, setIsLoading] = useState(true);
   const [isResetting, setIsResetting] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
@@ -53,10 +60,18 @@ export default function Dashboard() {
   const handleExport = async () => {
     setIsExporting(true);
     try {
-      const response = await api.raw("/api/reports/export");
-      if (!response.ok) throw new Error("Export failed");
-
-      const blob = await response.blob();
+      // Generate CSV from local request data
+      const allRequests = requests;
+      if (allRequests.length === 0) {
+        toast({ title: "No data", description: "No requests to export" });
+        return;
+      }
+      const headers = ["Request #", "Purpose", "Amount", "Status", "Requester", "Created"];
+      const rows = allRequests.map(r => [
+        r.requestNumber, r.purpose, r.amount, r.status, r.requesterName, r.createdAt
+      ]);
+      const csv = [headers.join(","), ...rows.map(r => r.map(v => `"${v}"`).join(","))].join("\n");
+      const blob = new Blob([csv], { type: "text/csv" });
       const url = window.URL.createObjectURL(blob);
       const a = document.createElement('a');
       a.href = url;
@@ -74,36 +89,45 @@ export default function Dashboard() {
     }
   };
 
-  const fetchData = async () => {
-    try {
-      const [statsData, requestsData, userData] = await Promise.all([
-        api.get<DashboardStats>("/api/cash-requests/stats"),
-        api.get<CashRequest[]>("/api/cash-requests"),
-        api.get<{ id: string; role: string }>("/api/users/me"),
-      ]);
-      setStats(statsData);
-      setRequests(requestsData.slice(0, 5));
-      setUserRole(userData.role);
-    } catch (error) {
-      console.error("Failed to fetch dashboard data:", error);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
+  // Real-time subscriptions
   useEffect(() => {
-    fetchData();
-  }, []);
+    if (!uid || !userRole) return;
+
+    const unsubStats = subscribeToDashboardStats(
+      (s) => {
+        setStats(s);
+        setIsLoading(false);
+      },
+      uid,
+      userRole
+    );
+
+    const unsubRequests = subscribeToAllCashRequests((data) => {
+      let arr = recordToArray(data);
+      // Filter by user if STAFF
+      if (userRole === "STAFF") {
+        arr = arr.filter(r => r.requesterId === uid);
+      }
+      // Sort by newest first and take top 5
+      arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setRequests(arr.slice(0, 5));
+      setIsLoading(false);
+    });
+
+    return () => {
+      unsubStats();
+      unsubRequests();
+    };
+  }, [uid, userRole]);
 
   const handleResetAllRequests = async () => {
     setIsResetting(true);
     try {
-      await api.delete("/api/cash-requests/reset-all");
+      await deleteAllCashRequests();
       toast({
         title: "Success",
         description: "All requests have been deleted successfully.",
       });
-      await fetchData();
     } catch (error) {
       console.error("Failed to reset requests:", error);
       toast({

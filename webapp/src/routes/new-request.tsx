@@ -38,17 +38,23 @@ import {
 } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Label } from "@/components/ui/label";
-import { api } from "@/lib/api";
-import { Category, CashRequest, PayoutMethod } from "@/lib/types";
+import { useAuth } from "@/components/AuthProvider";
+import {
+  getAllCategories,
+  createCashRequest,
+  recordToArray,
+} from "@/lib/firebase-db";
+import { PayoutMethod } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
 export default function NewRequest() {
   const navigate = useNavigate();
+  const { uid, userProfile, firebaseUser } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
-  const [success, setSuccess] = useState<CashRequest | null>(null);
+  const [success, setSuccess] = useState<{ requestNumber: string } | null>(null);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [categories, setCategories] = useState<Category[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string; active: boolean }[]>([]);
   const [isLoadingCategories, setIsLoadingCategories] = useState(true);
 
   const [formData, setFormData] = useState<{
@@ -82,8 +88,8 @@ export default function NewRequest() {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const response = await api.get<Category[]>("/api/categories");
-        setCategories(response);
+        const cats = await getAllCategories();
+        setCategories(recordToArray(cats).filter(c => c.active));
       } catch (err) {
         console.error("Failed to fetch categories:", err);
       } finally {
@@ -115,22 +121,38 @@ export default function NewRequest() {
     setIsLoading(true);
 
     try {
-      const response = await api.post<CashRequest>("/api/cash-requests", {
+      const selectedCategory = categories.find(c => c.id === formData.categoryId);
+      
+      await createCashRequest({
         amount: parseFloat(formData.amount),
         purpose: formData.purpose,
         categoryId: formData.categoryId,
-        client: formData.client || undefined,
-        site: formData.site || undefined,
+        categoryName: selectedCategory?.name || "Unknown",
+        client: formData.client || null,
+        site: formData.site || null,
         payoutMethod: formData.payoutMethod,
-        accountName: formData.accountName || undefined,
-        accountNumber: formData.accountNumber || undefined,
-        bankName: formData.bankName || undefined, // Provider for Momo
-        description: formData.description || undefined,
+        accountName: formData.accountName || null,
+        accountNumber: formData.accountNumber || null,
+        bankName: formData.bankName || null,
+        description: formData.description || null,
         urgency: formData.urgency,
-        neededBy: formData.neededBy,
+        neededBy: formData.neededBy?.toISOString() || null,
+        status: "PENDING_ADMIN",
+        requesterId: uid!,
+        requesterName: userProfile?.name || firebaseUser?.displayName || "Unknown",
+        requesterEmail: userProfile?.email || firebaseUser?.email || "",
+        requesterDepartment: userProfile?.department || null,
+        adminId: null,
+        adminName: null,
+        adminComment: null,
+        adminReviewedAt: null,
+        managerId: null,
+        managerName: null,
+        managerComment: null,
+        managerReviewedAt: null,
       });
 
-      setSuccess(response);
+      setSuccess({ requestNumber: "Submitted" });
     } catch (err) {
       setError(err instanceof Error ? err.message : "Failed to create request");
     } finally {

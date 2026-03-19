@@ -22,9 +22,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { api } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 import {
-  CashRequest,
+  subscribeToAllCashRequests,
+  recordToArray,
+  type DBCashRequest,
+} from "@/lib/firebase-db";
+import {
   statusLabels,
   statusColors,
   urgencyColors,
@@ -48,36 +52,31 @@ const itemVariants = {
 };
 
 export default function Requests() {
-  const [requests, setRequests] = useState<CashRequest[]>([]);
-  const [filteredRequests, setFilteredRequests] = useState<CashRequest[]>([]);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+  const [requests, setRequests] = useState<(DBCashRequest & { id: string })[]>([]);
+  const [filteredRequests, setFilteredRequests] = useState<(DBCashRequest & { id: string })[]>([]);
+  const { uid, userProfile } = useAuth();
+  const userRole = userProfile?.role || null;
+  const userId = uid;
   const [isLoading, setIsLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [editDialogOpen, setEditDialogOpen] = useState(false);
-  const [selectedRequest, setSelectedRequest] = useState<CashRequest | null>(null);
+  const [selectedRequest, setSelectedRequest] = useState<(DBCashRequest & { id: string }) | null>(null);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [requestsData, userData] = await Promise.all([
-          api.get<CashRequest[]>("/api/cash-requests"),
-          api.get<{ id: string; role: string }>("/api/users/me"),
-        ]);
-        setRequests(requestsData);
-        setFilteredRequests(requestsData);
-        setUserRole(userData.role);
-        setUserId(userData.id);
-      } catch (error) {
-        console.error("Failed to fetch requests:", error);
-      } finally {
-        setIsLoading(false);
+    if (!uid || !userRole) return;
+    const unsub = subscribeToAllCashRequests((data) => {
+      let arr = recordToArray(data);
+      // STAFF sees only their own; ADMIN/MANAGER sees all
+      if (userRole === "STAFF") {
+        arr = arr.filter(r => r.requesterId === uid);
       }
-    };
-
-    fetchData();
-  }, []);
+      arr.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+      setRequests(arr);
+      setIsLoading(false);
+    });
+    return () => unsub();
+  }, [uid, userRole]);
 
   useEffect(() => {
     let filtered = [...requests];
@@ -88,7 +87,7 @@ export default function Requests() {
         (r) =>
           r.requestNumber.toLowerCase().includes(query) ||
           r.purpose.toLowerCase().includes(query) ||
-          r.requester.name.toLowerCase().includes(query)
+          r.requesterName.toLowerCase().includes(query)
       );
     }
 
@@ -141,10 +140,10 @@ export default function Requests() {
     );
   };
 
-  const canEditRequest = (request: CashRequest) => {
+  const canEditRequest = (request: DBCashRequest & { id: string }) => {
     return (
       userRole === UserRole.STAFF &&
-      userId === request.requester.id &&
+      userId === request.requesterId &&
       request.status === CashRequestStatus.PENDING_ADMIN
     );
   };
@@ -156,10 +155,8 @@ export default function Requests() {
     setEditDialogOpen(true);
   };
 
-  const handleEditSuccess = (updatedRequest: CashRequest) => {
-    setRequests((prev) =>
-      prev.map((r) => (r.id === updatedRequest.id ? updatedRequest : r))
-    );
+  const handleEditSuccess = () => {
+    // Real-time subscription auto-updates
   };
 
   if (isLoading) {
@@ -323,11 +320,11 @@ export default function Requests() {
                             {request.purpose}
                           </p>
                           <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                            <span className="px-2.5 py-1 rounded-lg bg-white/[0.03] text-xs font-medium">{request.category.name}</span>
+                            <span className="px-2.5 py-1 rounded-lg bg-white/[0.03] text-xs font-medium">{request.categoryName}</span>
                             <span className="text-muted-foreground/40">|</span>
                             <span className="text-xs">
                               {userRole !== UserRole.STAFF
-                                ? `By ${request.requester.name}`
+                                ? `By ${request.requesterName}`
                                 : new Date(request.createdAt).toLocaleDateString("en-GB", {
                                   day: "numeric",
                                   month: "short",

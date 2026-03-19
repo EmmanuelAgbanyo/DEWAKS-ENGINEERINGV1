@@ -21,9 +21,13 @@ import {
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { api } from "@/lib/api";
+import { useAuth } from "@/components/AuthProvider";
 import {
-  CashRequest,
+  subscribeToCashRequest,
+  updateCashRequest,
+  type DBCashRequest,
+} from "@/lib/firebase-db";
+import {
   statusLabels,
   statusColors,
   urgencyColors,
@@ -36,9 +40,10 @@ import { EditRequestDialog } from "@/components/EditRequestDialog";
 export default function RequestDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [request, setRequest] = useState<CashRequest | null>(null);
-  const [userRole, setUserRole] = useState<string | null>(null);
-  const [userId, setUserId] = useState<string | null>(null);
+  const { uid, userProfile } = useAuth();
+  const userRole = userProfile?.role || null;
+  const userId = uid;
+  const [request, setRequest] = useState<(DBCashRequest & { id: string }) | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [comment, setComment] = useState("");
@@ -46,23 +51,16 @@ export default function RequestDetail() {
   const [editDialogOpen, setEditDialogOpen] = useState(false);
 
   useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [requestData, userData] = await Promise.all([
-          api.get<CashRequest>(`/api/cash-requests/${id}`),
-          api.get<{ id: string; role: string }>("/api/users/me"),
-        ]);
-        setRequest(requestData);
-        setUserRole(userData.role);
-        setUserId(userData.id);
-      } catch (error) {
-        console.error("Failed to fetch request:", error);
-      } finally {
-        setIsLoading(false);
+    if (!id) return;
+    const unsub = subscribeToCashRequest(id, (data) => {
+      if (data) {
+        setRequest({ ...data, id });
+      } else {
+        setRequest(null);
       }
-    };
-
-    fetchData();
+      setIsLoading(false);
+    });
+    return () => unsub();
   }, [id]);
 
   const formatCurrency = (amount: number) => {
@@ -86,13 +84,53 @@ export default function RequestDetail() {
       return;
     }
 
+    if (!id || !userRole || !userProfile) return;
+
     setIsSubmitting(true);
     try {
-      const updated = await api.patch<CashRequest>(`/api/cash-requests/${id}/review`, {
-        action,
-        comment: comment.trim() || undefined,
-      });
-      setRequest(updated);
+      const now = new Date().toISOString();
+      const updates: Partial<DBCashRequest> = {};
+
+      if (action === "approve") {
+        if (userRole === UserRole.ADMIN && request?.status === CashRequestStatus.PENDING_ADMIN) {
+          updates.status = "PENDING_MANAGER";
+          updates.adminId = uid;
+          updates.adminName = userProfile.name;
+          updates.adminComment = comment.trim() || null;
+          updates.adminReviewedAt = now;
+        } else {
+          // Manager final approval or manager reviewing PENDING_ADMIN (direct)
+          updates.status = "APPROVED";
+          if (request?.status === CashRequestStatus.PENDING_ADMIN) {
+            // Manager doing direct approval
+            updates.adminId = uid;
+            updates.adminName = userProfile.name;
+            updates.adminComment = comment.trim() || null;
+            updates.adminReviewedAt = now;
+          }
+          updates.managerId = uid;
+          updates.managerName = userProfile.name;
+          updates.managerComment = comment.trim() || null;
+          updates.managerReviewedAt = now;
+        }
+      } else {
+        // Reject
+        if (userRole === UserRole.ADMIN) {
+          updates.status = "REJECTED_BY_ADMIN";
+          updates.adminId = uid;
+          updates.adminName = userProfile.name;
+          updates.adminComment = comment.trim();
+          updates.adminReviewedAt = now;
+        } else {
+          updates.status = "REJECTED_BY_MANAGER";
+          updates.managerId = uid;
+          updates.managerName = userProfile.name;
+          updates.managerComment = comment.trim();
+          updates.managerReviewedAt = now;
+        }
+      }
+
+      await updateCashRequest(id, updates);
       setComment("");
       setShowRejectModal(false);
     } catch (error) {
@@ -121,13 +159,13 @@ export default function RequestDetail() {
     if (!request || !userRole || !userId) return false;
     return (
       userRole === UserRole.STAFF &&
-      userId === request.requester.id &&
+      userId === request.requesterId &&
       request.status === CashRequestStatus.PENDING_ADMIN
     );
   };
 
-  const handleEditSuccess = (updatedRequest: CashRequest) => {
-    setRequest(updatedRequest);
+  const handleEditSuccess = () => {
+    // Real-time subscription auto-updates
   };
 
   const getStatusIcon = (status: string) => {
@@ -284,7 +322,7 @@ export default function RequestDetail() {
                 <Tag className="w-4 h-4" />
                 <span className="text-sm font-medium">Category</span>
               </div>
-              <p className="text-foreground font-medium">{request.category.name}</p>
+              <p className="text-foreground font-medium">{request.categoryName}</p>
             </div>
 
             {/* Urgency */}
@@ -304,8 +342,8 @@ export default function RequestDetail() {
                 <User className="w-4 h-4" />
                 <span className="text-sm font-medium">Requested By</span>
               </div>
-              <p className="text-foreground font-medium">{request.requester.name}</p>
-              <p className="text-sm text-muted-foreground">{request.requester.email}</p>
+              <p className="text-foreground font-medium">{request.requesterName}</p>
+              <p className="text-sm text-muted-foreground">{request.requesterEmail}</p>
             </div>
 
             {/* Date */}
@@ -333,7 +371,7 @@ export default function RequestDetail() {
         </motion.div>
 
         {/* Review Timeline */}
-        {(request.admin || request.manager) && (
+        {(request.adminId || request.managerId) && (
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
@@ -345,7 +383,7 @@ export default function RequestDetail() {
               Approval Timeline
             </h3>
             <div className="space-y-4">
-              {request.admin && (
+              {request.adminId && (
                 <div className="flex gap-4 p-4 rounded-xl bg-secondary/20 border border-border/50">
                   <div
                     className={cn(
@@ -366,7 +404,7 @@ export default function RequestDetail() {
                       Admin Review
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      by {request.admin.name} • {request.adminReviewedAt && formatDate(request.adminReviewedAt)}
+                      by {request.adminName} • {request.adminReviewedAt && formatDate(request.adminReviewedAt)}
                     </p>
                     {request.adminComment && (
                       <p className="text-sm text-foreground/80 mt-3 p-3 bg-secondary/40 rounded-lg border-l-2 border-primary/50">
@@ -376,7 +414,7 @@ export default function RequestDetail() {
                   </div>
                 </div>
               )}
-              {request.manager && (
+              {request.managerId && (
                 <div className="flex gap-4 p-4 rounded-xl bg-secondary/20 border border-border/50">
                   <div
                     className={cn(
@@ -397,7 +435,7 @@ export default function RequestDetail() {
                       Manager Approval
                     </p>
                     <p className="text-sm text-muted-foreground">
-                      by {request.manager.name} • {request.managerReviewedAt && formatDate(request.managerReviewedAt)}
+                      by {request.managerName} • {request.managerReviewedAt && formatDate(request.managerReviewedAt)}
                     </p>
                     {request.managerComment && (
                       <p className="text-sm text-foreground/80 mt-3 p-3 bg-secondary/40 rounded-lg border-l-2 border-primary/50">

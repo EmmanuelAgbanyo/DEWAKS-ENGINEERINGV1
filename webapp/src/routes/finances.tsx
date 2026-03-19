@@ -1,7 +1,11 @@
 import { useEffect, useState } from "react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
-import { api } from "@/lib/api";
+import {
+  subscribeToAllCashRequests,
+  recordToArray,
+  type DBCashRequest,
+} from "@/lib/firebase-db";
 import { useToast } from "@/hooks/use-toast";
 import {
     Download,
@@ -60,33 +64,45 @@ export default function FinancesPage() {
     const { toast } = useToast();
 
     useEffect(() => {
-        const fetchData = async () => {
-            try {
-                const [statsRes, trendRes] = await Promise.all([
-                    api.get<{ byCategory: CategoryData[]; byMethod: MethodData[] }>("/api/reports/advanced-stats"),
-                    api.get<TrendData[]>("/api/reports/trends")
-                ]);
+        const unsub = subscribeToAllCashRequests((data) => {
+            const all = recordToArray(data).filter(r => r.status === "APPROVED");
 
-                setCategories(statsRes.byCategory);
-                setMethods(statsRes.byMethod);
-                setTrends(trendRes);
-            } catch (error) {
-                console.error("Failed to fetch finance data", error);
-            } finally {
-                setIsLoading(false);
-            }
-        };
+            // Compute category breakdown
+            const catMap = new Map<string, { amount: number; count: number }>();
+            const methodMap = new Map<string, { amount: number; count: number }>();
+            const trendMap = new Map<string, number>();
 
-        fetchData();
+            all.forEach(r => {
+                const catName = r.categoryName || "Uncategorized";
+                const existing = catMap.get(catName) || { amount: 0, count: 0 };
+                catMap.set(catName, { amount: existing.amount + r.amount, count: existing.count + 1 });
+
+                const method = r.payoutMethod || "CASH";
+                const mExisting = methodMap.get(method) || { amount: 0, count: 0 };
+                methodMap.set(method, { amount: mExisting.amount + r.amount, count: mExisting.count + 1 });
+
+                const day = r.createdAt.split("T")[0];
+                trendMap.set(day, (trendMap.get(day) || 0) + r.amount);
+            });
+
+            setCategories(Array.from(catMap.entries()).map(([name, v]) => ({ name, ...v })).sort((a, b) => b.amount - a.amount));
+            setMethods(Array.from(methodMap.entries()).map(([method, v]) => ({ method, ...v })));
+
+            const sortedDays = Array.from(trendMap.entries()).sort((a, b) => a[0].localeCompare(b[0])).slice(-30);
+            setTrends(sortedDays.map(([date, amount]) => ({ date, amount })));
+
+            setIsLoading(false);
+        });
+        return () => unsub();
     }, []);
 
     const handleExport = async () => {
         setIsExporting(true);
         try {
-            const response = await api.raw("/api/reports/export");
-            if (!response.ok) throw new Error("Export failed");
-
-            const blob = await response.blob();
+            const headers = ["Category", "Amount", "Count"];
+            const rows = categories.map(c => [c.name, c.amount.toString(), c.count.toString()]);
+            const csv = [headers.join(","), ...rows.map(r => r.map(v => `"${v}"`).join(","))].join("\n");
+            const blob = new Blob([csv], { type: "text/csv" });
             const url = window.URL.createObjectURL(blob);
             const a = document.createElement('a');
             a.href = url;
@@ -95,7 +111,6 @@ export default function FinancesPage() {
             a.click();
             window.URL.revokeObjectURL(url);
             document.body.removeChild(a);
-
             toast({ title: "Success", description: "Report downloaded successfully" });
         } catch (e) {
             toast({ title: "Error", description: "Failed to export report", variant: "destructive" });

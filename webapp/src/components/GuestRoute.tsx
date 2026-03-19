@@ -1,11 +1,11 @@
 import { Navigate } from "react-router-dom";
-import { useSession } from "@/lib/auth-client";
+import { useAuth } from "@/components/AuthProvider";
 import { Loader2 } from "lucide-react";
 
 export function GuestRoute({ children }: { children: React.ReactNode }) {
-  const { data: session, isPending } = useSession();
+  const { firebaseUser, isLoading } = useAuth();
 
-  if (isPending) {
+  if (isLoading) {
     return (
       <div className="flex items-center justify-center min-h-screen animated-gradient">
         <div className="glass-card p-8 flex flex-col items-center gap-4">
@@ -16,7 +16,7 @@ export function GuestRoute({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (session?.user) {
+  if (firebaseUser) {
     return <Navigate to="/dashboard" replace />;
   }
 

@@ -4,8 +4,11 @@ import { Tag, Plus, Loader2, Save, Trash2, CheckCircle2 } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { api } from "@/lib/api";
-import { Category } from "@/lib/types";
+import {
+  subscribeToCategories,
+  createCategory,
+  recordToArray,
+} from "@/lib/firebase-db";
 import { useToast } from "@/hooks/use-toast";
 import {
     Dialog,
@@ -18,7 +21,7 @@ import {
 } from "@/components/ui/dialog";
 
 export default function CategoriesPage() {
-    const [categories, setCategories] = useState<Category[]>([]);
+    const [categories, setCategories] = useState<{ id: string; name: string; active: boolean }[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [isCreating, setIsCreating] = useState(false);
     const [newCategoryName, setNewCategoryName] = useState("");
@@ -26,24 +29,12 @@ export default function CategoriesPage() {
     const { toast } = useToast();
 
     useEffect(() => {
-        fetchCategories();
-    }, []);
-
-    const fetchCategories = async () => {
-        try {
-            const data = await api.get<Category[]>("/api/categories");
-            setCategories(data);
-        } catch (error) {
-            console.error("Failed to fetch categories:", error);
-            toast({
-                title: "Error",
-                description: "Failed to load categories",
-                variant: "destructive",
-            });
-        } finally {
+        const unsub = subscribeToCategories((data) => {
+            setCategories(recordToArray(data));
             setIsLoading(false);
-        }
-    };
+        });
+        return () => unsub();
+    }, []);
 
     const handleCreateCategory = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -51,10 +42,11 @@ export default function CategoriesPage() {
 
         setIsCreating(true);
         try {
-            const newCategory = await api.post<Category>("/api/categories", {
+            await createCategory({
                 name: newCategoryName.trim(),
+                active: true,
+                createdAt: new Date().toISOString(),
             });
-            setCategories([...categories, newCategory]);
             setNewCategoryName("");
             setIsDialogOpen(false);
             toast({

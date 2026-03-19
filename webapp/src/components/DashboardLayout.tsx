@@ -17,7 +17,8 @@ import {
   LineChart,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { signOut, useSession } from "@/lib/auth-client";
+import { signOut } from "@/lib/firebase-auth";
+import { useAuth } from "@/components/AuthProvider";
 import { cn } from "@/lib/utils";
 import { UserRole } from "@/lib/types";
 import { ThemeToggle } from "@/components/ThemeToggle";
@@ -29,24 +30,11 @@ interface DashboardLayoutProps {
 export function DashboardLayout({ children }: DashboardLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
-  const { data: session } = useSession();
+  const { firebaseUser, userProfile } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const userRole = userProfile?.role || null;
 
   const [isCollapsed, setIsCollapsed] = useState(false);
-
-  useEffect(() => {
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/users/me`, {
-      credentials: "include",
-    })
-      .then((res) => res.json())
-      .then((data) => {
-        if (data.data?.role) {
-          setUserRole(data.data.role);
-        }
-      })
-      .catch(console.error);
-  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -271,14 +259,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               <div className="flex items-center gap-3 justify-center">
                 <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary/20 to-accent/20 flex items-center justify-center border border-primary/20 flex-shrink-0">
                   <span className="text-xs font-bold text-primary">
-                    {(session?.user?.name || "U")[0].toUpperCase()}
+                    {(userProfile?.name || firebaseUser?.displayName || "U")[0].toUpperCase()}
                   </span>
                 </div>
 
                 {!isCollapsed && (
                   <div className="flex-1 min-w-0 overflow-hidden">
                     <p className="font-medium text-foreground text-xs truncate">
-                      {session?.user?.name?.split(" ")[0]}
+                      {(userProfile?.name || firebaseUser?.displayName || "").split(" ")[0]}
                     </p>
                     <p className="text-[10px] text-muted-foreground truncate uppercase tracking-wider font-semibold">
                       {userRole}
@@ -326,9 +314,40 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
             >
               {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <div className="flex items-center gap-2 text-[10px] font-medium uppercase tracking-widest"><ChevronRight className="w-3 h-3 rotate-180" /> <span>Collapse</span></div>}
             </button>
-
           </div>
 
+          {/* Footer Branding */}
+          <div className={cn(
+            "p-4 border-t border-border/50 text-center transition-all duration-300",
+            isCollapsed ? "py-4 px-1" : "py-4 px-4"
+          )}>
+            {!isCollapsed ? (
+              <div className="flex flex-col items-center justify-center gap-1 opacity-60 hover:opacity-100 transition-opacity">
+                <p className="text-[10px] text-muted-foreground font-medium uppercase tracking-widest">
+                  Powered by
+                </p>
+                <div className="flex items-center gap-1.5">
+                  <div className="h-4 w-4 rounded bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[0_0_10px_rgba(var(--primary),0.3)]">
+                    <span className="text-[8px] font-black text-white">N</span>
+                  </div>
+                  <span className="text-xs font-bold text-foreground bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+                    NexusByte Technologies
+                  </span>
+                </div>
+              </div>
+            ) : (
+               <div className="flex justify-center opacity-60 hover:opacity-100 transition-opacity group relative">
+                 <div className="h-6 w-6 rounded-md bg-gradient-to-br from-primary to-accent flex items-center justify-center shadow-[0_0_10px_rgba(var(--primary),0.3)]">
+                    <span className="text-[10px] font-black text-white">N</span>
+                 </div>
+                 {/* Tooltip for collapsed state */}
+                 <div className="absolute left-full ml-4 top-1/2 -translate-y-1/2 px-2 py-1 bg-card border border-border rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all whitespace-nowrap z-50">
+                   <p className="text-[10px] uppercase font-bold text-muted-foreground">Powered by</p>
+                   <p className="text-xs font-bold text-primary">NexusByte Technologies</p>
+                 </div>
+               </div>
+            )}
+          </div>
         </div>
       </motion.aside>
 
