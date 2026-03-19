@@ -4,8 +4,7 @@
     "scripts": {
         "dev": "npm run dev --prefix webapp",
         "install:all": "npm install --prefix webapp && npm install --prefix backend",
-        "postinstall": "npm run install:all",
-        "build": "npm run build --prefix webapp",
+        "build": "npm run install:all && npm run build --prefix webapp",
         "preview": "npm run preview --prefix webapp"
     },
     "dependencies": {
