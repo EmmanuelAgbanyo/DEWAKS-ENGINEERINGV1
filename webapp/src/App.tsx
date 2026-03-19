@@ -1,6 +1,7 @@
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
+import { ThemeProvider } from "@/components/ThemeProvider";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -25,119 +26,121 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider>
-      <Toaster />
-      <Sonner />
-      <BrowserRouter>
-        <Routes>
-          {/* Public routes */}
-          <Route
-            path="/login"
-            element={
-              <GuestRoute>
-                <Login />
-              </GuestRoute>
-            }
-          />
-          <Route
-            path="/signup"
-            element={
-              <GuestRoute>
-                <Signup />
-              </GuestRoute>
-            }
-          />
+    <ThemeProvider defaultTheme="light" storageKey="dewaks-ui-theme">
+      <TooltipProvider>
+        <Toaster />
+        <Sonner />
+        <BrowserRouter>
+          <Routes>
+            {/* Public routes */}
+            <Route
+              path="/login"
+              element={
+                <GuestRoute>
+                  <Login />
+                </GuestRoute>
+              }
+            />
+            <Route
+              path="/signup"
+              element={
+                <GuestRoute>
+                  <Signup />
+                </GuestRoute>
+              }
+            />
 
-          {/* Protected routes */}
-          <Route
-            path="/dashboard"
-            element={
-              <ProtectedRoute>
-                <Dashboard />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/new-request"
-            element={
-              <ProtectedRoute>
-                <NewRequest />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/requests"
-            element={
-              <ProtectedRoute>
-                <Requests />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/requests/:id"
-            element={
-              <ProtectedRoute>
-                <RequestDetail />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/all-requests"
-            element={
-              <ProtectedRoute>
-                <AllRequests />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/users"
-            element={
-              <ProtectedRoute>
-                <UsersPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/categories"
-            element={
-              <ProtectedRoute>
-                <CategoriesPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <ProfilePage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/finances"
-            element={
-              <ProtectedRoute>
-                <FinancesPage />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/comments-demo"
-            element={
-              <ProtectedRoute>
-                <CommentDemo />
-              </ProtectedRoute>
-            }
-          />
+            {/* Protected routes */}
+            <Route
+              path="/dashboard"
+              element={
+                <ProtectedRoute>
+                  <Dashboard />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/new-request"
+              element={
+                <ProtectedRoute>
+                  <NewRequest />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/requests"
+              element={
+                <ProtectedRoute>
+                  <Requests />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/requests/:id"
+              element={
+                <ProtectedRoute>
+                  <RequestDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/all-requests"
+              element={
+                <ProtectedRoute>
+                  <AllRequests />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/users"
+              element={
+                <ProtectedRoute>
+                  <UsersPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/categories"
+              element={
+                <ProtectedRoute>
+                  <CategoriesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/profile"
+              element={
+                <ProtectedRoute>
+                  <ProfilePage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/finances"
+              element={
+                <ProtectedRoute>
+                  <FinancesPage />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/comments-demo"
+              element={
+                <ProtectedRoute>
+                  <CommentDemo />
+                </ProtectedRoute>
+              }
+            />
 
-          {/* Default redirect */}
-          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+            {/* Default redirect */}
+            <Route path="/" element={<Navigate to="/dashboard" replace />} />
 
-          {/* 404 */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
+            {/* 404 */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 

@@ -59,7 +59,13 @@ export default function Signup() {
                     alt="Cinematic Background"
                     className="w-full h-full object-cover animate-ken-burns opacity-60"
                 />
-                <div className="absolute inset-0 bg-gradient-to-l from-black/80 via-black/50 to-black/30" /> {/* Cinematic gradient overlay */}
+                <div className="absolute inset-0 bg-gradient-to-l from-slate-950 via-slate-950/80 to-slate-950/40" />
+            </div>
+
+            {/* Ambient glow effects */}
+            <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+                <div className="absolute top-[-10%] right-[-10%] w-[50vw] h-[50vw] bg-primary/20 rounded-full blur-[120px] mix-blend-screen animate-pulse-soft" />
+                <div className="absolute bottom-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-accent/20 rounded-full blur-[120px] mix-blend-screen animate-pulse-soft delay-1000" />
             </div>
 
             {/* Left Panel - Branding (Hidden on Mobile) */}
@@ -71,16 +77,17 @@ export default function Signup() {
                         transition={{ duration: 0.8 }}
                     >
 
-                        <div className="relative p-10 backdrop-blur-md rounded-3xl border border-white/10 bg-black/60 shadow-2xl text-right">
-                            <div className="w-16 h-16 ml-auto rounded-2xl bg-gradient-to-br from-secondary to-pink-600 flex items-center justify-center shadow-lg shadow-pink-500/20 mb-6">
-                                <Building2 className="w-8 h-8 text-white opacity-90" />
+                        <div className="relative p-10 backdrop-blur-3xl rounded-3xl border border-white/10 bg-slate-950/40 shadow-2xl text-right">
+                            <div className="relative w-20 h-20 ml-auto rounded-2xl bg-white p-1 flex items-center justify-center shadow-lg shadow-primary/20 mb-8 transform hover:-rotate-6 transition-transform duration-500">
+                                <Building2 className="w-10 h-10 text-primary" />
+                                <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 hover:opacity-100 transition-opacity" />
                             </div>
-                            <h1 className="text-5xl font-bold text-white mb-6 leading-tight tracking-tight">
+                            <h1 className="text-6xl font-black text-white mb-8 leading-tight tracking-tighter">
                                 Join <br />
-                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-400 to-rose-300">Dewaks</span>
+                                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Dewaks</span>
                             </h1>
-                            <p className="text-lg text-pink-100/80 leading-relaxed font-light mb-8">
-                                Create an account to start submitting and tracking engineering requests with unprecedented operational speed.
+                            <p className="text-xl text-slate-300 leading-relaxed font-medium mb-8">
+                                Deploy your potential with the world's most advanced engineering request infrastructure.
                             </p>
 
                             <div className="space-y-4 flex flex-col items-end">
@@ -115,73 +122,81 @@ export default function Signup() {
                         <p className="text-blue-200/80 mt-2">Sign up to get started with Dewaks.</p>
                     </div>
 
-                    <div className="glass-card p-8 border-white/10 bg-black/60 shadow-2xl shadow-black/50 backdrop-blur-xl">
-                        <form onSubmit={handleSignup} className="space-y-4">
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-white ml-1">Full Name</label>
+                    <div className="glass-card p-10 border-white/10 bg-slate-950/40 shadow-elevation-3 backdrop-blur-3xl animate-scale-in">
+                        <form onSubmit={handleSignup} className="space-y-5">
+                            <div className="space-y-2.5">
+                                <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Identity</label>
                                 <div className="relative group">
-                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-primary transition-colors" />
+                                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600 group-focus-within:text-primary transition-all duration-500" />
                                     <Input
                                         type="text"
-                                        placeholder="John Doe"
+                                        placeholder="Full Name"
                                         value={formData.name}
                                         onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-primary/50 focus:ring-primary/20 rounded-xl transition-all"
+                                        className="pl-12 h-14 bg-white/[0.02] border-white/5 text-white placeholder:text-slate-700 focus:border-primary/50 focus:ring-primary/20 rounded-2xl transition-all duration-500"
                                         disabled={isLoading}
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-white ml-1">Email Address</label>
+                            <div className="space-y-2.5">
+                                <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Terminal ID</label>
                                 <div className="relative group">
-                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-primary transition-colors" />
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600 group-focus-within:text-primary transition-all duration-500" />
                                     <Input
                                         type="email"
-                                        placeholder="name@company.com"
+                                        placeholder="access@dewaks.com"
                                         value={formData.email}
                                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                                        className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-primary/50 focus:ring-primary/20 rounded-xl transition-all"
+                                        className="pl-12 h-14 bg-white/[0.02] border-white/5 text-white placeholder:text-slate-700 focus:border-primary/50 focus:ring-primary/20 rounded-2xl transition-all duration-500"
                                         disabled={isLoading}
                                     />
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <label className="text-sm font-medium text-white ml-1">Password</label>
+                            <div className="space-y-2.5">
+                                <label className="text-xs font-black uppercase tracking-[0.2em] text-slate-500 ml-1">Secure Key</label>
                                 <div className="relative group">
-                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-primary transition-colors" />
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-600 group-focus-within:text-primary transition-all duration-500" />
                                     <Input
                                         type="password"
                                         placeholder="Min 8 characters"
                                         value={formData.password}
                                         onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                                        className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-primary/50 focus:ring-primary/20 rounded-xl transition-all"
+                                        className="pl-12 h-14 bg-white/[0.02] border-white/5 text-white placeholder:text-slate-700 focus:border-primary/50 focus:ring-primary/20 rounded-2xl transition-all duration-500"
                                         disabled={isLoading}
                                     />
                                 </div>
                             </div>
 
                             {error && (
-                                <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-200 text-sm text-center">
+                                <motion.div
+                                    initial={{ opacity: 0, y: -10 }}
+                                    animate={{ opacity: 1, y: 0 }}
+                                    className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm font-bold text-center"
+                                >
                                     {error}
-                                </div>
+                                </motion.div>
                             )}
 
-                            <Button type="submit" disabled={isLoading} className="w-full h-12 rounded-xl bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity font-semibold text-white shadow-lg shadow-primary/20 mt-2">
-                                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Create Account"}
+                            <Button type="submit" disabled={isLoading} className="btn-glow w-full h-14 bg-gradient-to-r from-primary to-accent text-white shadow-glow-md rounded-2xl mt-4">
+                                {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                                    <span className="flex items-center gap-2 font-black uppercase tracking-widest">
+                                        Establish Access <ArrowRight className="w-5 h-5" />
+                                    </span>
+                                )}
                             </Button>
                         </form>
                     </div>
 
-                    <p className="text-center text-sm text-blue-200/60">
-                        Already have an account? <Link to="/login" className="text-primary hover:text-accent font-medium transition-colors">Sign in</Link>
+                    <p className="text-center text-sm font-medium text-slate-400">
+                        Authorized? <Link to="/login" className="text-primary hover:text-accent font-black transition-colors">SignIn</Link>
                     </p>
                 </motion.div>
 
                 {/* Footer */}
-                <div className="mt-8 text-center text-xs text-white/30">
-                    &copy; {new Date().getFullYear()} Dewaks Engineering. Powered by <span className="text-white/50 font-medium">NexuByte Technologies</span>.
+                <div className="mt-12 text-center text-[10px] font-black uppercase tracking-[0.3em] text-slate-600">
+                    &copy; {new Date().getFullYear()} Dewaks Engineering &bull; Global Operations
                 </div>
             </div>
         </div>

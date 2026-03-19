@@ -10,21 +10,21 @@ const buttonVariants = cva(
     variants: {
       variant: {
         default:
-          "bg-primary text-primary-foreground shadow-elevation-1 hover:shadow-glow-sm hover:brightness-110 active:shadow-none",
+          "bg-primary text-primary-foreground shadow-glow-md hover:bg-primary/95 hover:shadow-[0_0_25px_-5px_hsl(var(--primary)/0.6)] hover:-translate-y-[2px] active:translate-y-[0px] transition-all duration-300",
         destructive:
-          "bg-destructive text-destructive-foreground shadow-elevation-1 hover:bg-destructive/90 hover:shadow-[0_0_20px_-5px_hsl(var(--destructive)/0.5)]",
+          "bg-destructive text-destructive-foreground shadow-elevation-1 hover:bg-destructive/90 hover:shadow-[0_0_20px_-5px_hsl(var(--destructive)/0.5)] hover:-translate-y-[2px] active:translate-y-[0px] transition-all duration-300",
         outline:
-          "border border-border bg-transparent hover:bg-secondary/50 hover:border-primary/30 hover:shadow-[0_0_15px_-5px_hsl(var(--primary)/0.2)]",
+          "border border-border/80 bg-transparent text-foreground hover:bg-primary/5 hover:border-primary/40 hover:shadow-elevation-1 hover:-translate-y-[1px] active:translate-y-[0px] transition-all duration-300",
         secondary:
-          "bg-secondary text-secondary-foreground shadow-elevation-1 hover:bg-secondary/80 hover:shadow-elevation-2",
+          "bg-secondary/15 backdrop-blur-md text-secondary-foreground border border-secondary/20 hover:bg-secondary/25 hover:border-secondary/40 hover:shadow-elevation-1 hover:-translate-y-[1px] transition-all duration-300",
         ghost:
-          "hover:bg-secondary/60 hover:text-foreground",
+          "text-muted-foreground hover:bg-muted/80 hover:text-foreground hover:-translate-y-[1px] transition-all duration-200",
         link:
           "text-primary underline-offset-4 hover:underline hover:text-primary/80",
         glow:
-          "bg-primary text-primary-foreground shadow-glow-md hover:shadow-glow-lg hover:brightness-110 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/0 before:via-white/20 before:to-white/0 before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700",
+          "bg-primary text-primary-foreground shadow-glow-md hover:shadow-[0_0_30px_-5px_hsl(var(--primary)/0.7)] hover:brightness-110 relative overflow-hidden before:absolute before:inset-0 before:bg-gradient-to-r before:from-white/0 before:via-white/30 before:to-white/0 before:translate-x-[-200%] hover:before:translate-x-[200%] before:transition-transform before:duration-700 hover:-translate-y-[2px] active:translate-y-[1px]",
         gradient:
-          "bg-gradient-to-r from-primary via-[hsl(340,75%,60%)] to-[hsl(262,80%,60%)] text-white shadow-elevation-2 hover:shadow-glow-md hover:brightness-105 bg-[length:200%_100%] hover:bg-right transition-all duration-500",
+          "bg-gradient-to-br from-primary via-[hsl(340,75%,60%)] to-[hsl(262,80%,60%)] text-white shadow-elevation-2 hover:shadow-[0_0_30px_-5px_hsl(var(--primary)/0.6)] hover:brightness-110 bg-[length:200%_200%] hover:bg-right hover:-translate-y-[2px] active:translate-y-[1px] transition-all duration-500",
       },
       size: {
         default: "h-10 px-5 py-2",

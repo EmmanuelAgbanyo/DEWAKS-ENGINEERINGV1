@@ -238,10 +238,10 @@ export default function Dashboard() {
                 </span>
               </div>
             </div>
-            <p className="text-muted-foreground text-base">
+            <p className="text-muted-foreground text-lg font-bold tracking-wide">
               {userRole === UserRole.STAFF
-                ? "Track your cash requests and monitor their status"
-                : "Overview of all cash flow requests and activity"}
+                ? "PRECISION LIQUIDITY MANAGEMENT"
+                : "REAL-TIME ENTERPRISE CASH FLOW"}
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
@@ -266,7 +266,7 @@ export default function Dashboard() {
                       Reset All
                     </Button>
                   </AlertDialogTrigger>
-                  <AlertDialogContent className="bg-card/95 backdrop-blur-2xl border-white/10">
+                  <AlertDialogContent className="bg-card/95 backdrop-blur-2xl border-border">
                     <AlertDialogHeader>
                       <div className="flex items-center gap-4 mb-2">
                         <div className="p-3 rounded-2xl bg-destructive/10 border border-destructive/20">
@@ -283,7 +283,7 @@ export default function Dashboard() {
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter className="mt-4">
-                      <AlertDialogCancel className="bg-white/5 border-white/10 hover:bg-white/10 hover:border-white/20">
+                      <AlertDialogCancel className="bg-muted/50 border-border hover:bg-muted hover:border-border">
                         Cancel
                       </AlertDialogCancel>
                       <AlertDialogAction
@@ -300,8 +300,8 @@ export default function Dashboard() {
             )}
             {userRole === UserRole.STAFF && (
               <Link to="/new-request">
-                <Button className="relative overflow-hidden bg-gradient-to-r from-primary via-primary to-accent hover:opacity-90 text-primary-foreground font-semibold shadow-lg shadow-primary/20 border-0 btn-glow h-11 px-5">
-                  <PlusCircle className="w-4 h-4 mr-2" />
+                <Button className="btn-glow bg-gradient-to-r from-primary to-accent text-white shadow-glow-md h-12 px-8">
+                  <PlusCircle className="w-5 h-5 mr-2" />
                   New Request
                 </Button>
               </Link>
@@ -324,46 +324,43 @@ export default function Dashboard() {
               className="group relative"
             >
               <div className={cn(
-                "relative h-full overflow-hidden rounded-2xl border backdrop-blur-xl transition-all duration-500",
-                "bg-[#0f172a]/40 hover:bg-[#0f172a]/60", // Darker glass base
-                stat.borderColor,
-                stat.glowClass
+                "glass-card-hover relative h-full overflow-hidden transition-all duration-700",
+                stat.borderColor
               )}>
-                {/* Gradient Background Overlay */}
+                {/* Cyber Gradient Background */}
                 <div className={cn(
-                  "absolute inset-0 bg-gradient-to-br opacity-20 group-hover:opacity-30 transition-opacity duration-500",
+                  "absolute inset-0 bg-gradient-to-br opacity-5 group-hover:opacity-20 transition-opacity duration-700",
                   stat.gradient
                 )} />
 
-                {/* Glass Shine Effect */}
-                <div className="absolute inset-0 bg-gradient-to-tr from-white/5 via-white/0 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none" />
-
-                <div className="relative p-6 flex items-start justify-between">
-                  <div className="space-y-3 z-10">
-                    <p className="text-sm font-medium text-white/90 group-hover:text-white transition-colors">{stat.label}</p>
-                    <div className="flex items-baseline gap-2">
-                      <p className="text-4xl font-bold text-white tracking-tight number-display drop-shadow-md">
+                <div className="relative p-8 flex items-start justify-between">
+                  <div className="space-y-4 z-10">
+                    <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground group-hover:text-muted-foreground/80 transition-colors">
+                      {stat.label}
+                    </p>
+                    <div className="flex items-baseline gap-3">
+                      <p className="text-6xl font-black text-foreground tracking-tighter number-display drop-shadow-glow-sm">
                         {stat.value}
                       </p>
-                      {stat.value > 0 && (
-                        <span className={cn("flex items-center text-xs font-bold px-2 py-0.5 rounded-full bg-white/5 border border-white/5", stat.color)}>
-                          <ArrowUpRight className="w-3 h-3 mr-1" />
-                          +
-                        </span>
-                      )}
                     </div>
                   </div>
 
-                  {/* Icon Container with Glow */}
+                  {/* Icon Container with Glass Glow */}
                   <div className={cn(
-                    "p-3.5 rounded-xl transition-all duration-300 shadow-lg",
+                    "p-5 rounded-2xl transition-all duration-700 shadow-elevation-2",
                     stat.iconBg,
-                    "border border-white/5",
-                    "group-hover:scale-110 group-hover:shadow-current/20"
+                    "border border-border/50 group-hover:scale-110 group-hover:shadow-primary/40 group-hover:border-primary/20"
                   )}>
-                    <stat.icon className={cn("w-6 h-6", stat.color)} />
+                    <stat.icon className={cn("w-8 h-8", stat.color)} />
                   </div>
                 </div>
+
+                {/* Bottom Glow Line */}
+                <div className={cn(
+                  "absolute bottom-0 left-0 right-0 h-[2px] opacity-0 group-hover:opacity-100 transition-opacity duration-700",
+                  "bg-gradient-to-r from-transparent via-current to-transparent",
+                  stat.color
+                )} />
               </div>
             </motion.div>
           ))}
@@ -376,24 +373,26 @@ export default function Dashboard() {
         >
           {/* Total Amount Card */}
           <motion.div
-            whileHover={{ y: -3, scale: 1.01 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="group relative overflow-hidden rounded-2xl border border-blue-500/20 shadow-lg shadow-blue-900/10"
+            whileHover={{ y: -10, scale: 1.02 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="group glass-card-hover relative border-primary/20 overflow-hidden"
           >
-            <div className="absolute inset-0 bg-[#0f172a]/60 backdrop-blur-xl transition-colors hover:bg-[#0f172a]/80" />
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-indigo-500/5 opacity-50" />
+            {/* Animated Glow Effect */}
+            <div className="absolute -inset-24 bg-primary/10 blur-[100px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 animate-pulse-soft" />
+            
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/15 via-transparent to-transparent opacity-60" />
 
-            <div className="relative p-8">
-              <div className="flex items-center gap-6">
+            <div className="relative p-12">
+              <div className="flex items-center gap-10">
                 <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-blue-400 to-indigo-600 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity scale-125" />
-                  <div className="relative p-5 rounded-2xl bg-gradient-to-br from-blue-500/20 to-indigo-500/20 border border-blue-400/30 ring-1 ring-blue-500/20 shadow-inner">
-                    <Wallet className="w-8 h-8 text-blue-400 drop-shadow-sm" />
+                  <div className="absolute inset-0 bg-primary/50 rounded-3xl blur-3xl opacity-20 group-hover:opacity-60 transition-all duration-700 scale-150" />
+                  <div className="relative p-7 rounded-3xl bg-primary/10 border border-primary/30 shadow-inner group-hover:border-primary/50 transition-colors duration-700">
+                    <Wallet className="w-12 h-12 text-primary drop-shadow-glow-sm" />
                   </div>
                 </div>
                 <div>
-                  <p className="text-base text-white/90 font-medium mb-1 tracking-wide">Total Amount Requested</p>
-                  <p className="text-4xl md:text-5xl font-bold text-white tracking-tight number-display drop-shadow-md">
+                  <p className="text-sm text-muted-foreground font-black mb-3 uppercase tracking-[0.3em]">Total Volume</p>
+                  <p className="text-6xl md:text-7xl font-black text-foreground tracking-tighter number-display drop-shadow-glow">
                     {formatCurrency(stats?.totalAmount || 0)}
                   </p>
                 </div>
@@ -401,26 +400,27 @@ export default function Dashboard() {
             </div>
           </motion.div>
 
-          {/* Pending Amount Card */}
           <motion.div
-            whileHover={{ y: -3, scale: 1.01 }}
-            transition={{ duration: 0.3, ease: [0.22, 1, 0.36, 1] }}
-            className="group relative overflow-hidden rounded-2xl border border-orange-500/20 shadow-lg shadow-orange-900/10"
+            whileHover={{ y: -10, scale: 1.02 }}
+            transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
+            className="group glass-card-hover relative border-orange-500/20 overflow-hidden"
           >
-            <div className="absolute inset-0 bg-[#0f172a]/60 backdrop-blur-xl transition-colors hover:bg-[#0f172a]/80" />
-            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/10 to-amber-500/5 opacity-50" />
+            {/* Animated Glow Effect */}
+            <div className="absolute -inset-24 bg-orange-500/10 blur-[100px] rounded-full opacity-0 group-hover:opacity-100 transition-opacity duration-1000 animate-pulse-soft" />
 
-            <div className="relative p-8">
-              <div className="flex items-center gap-6">
+            <div className="absolute inset-0 bg-gradient-to-br from-orange-500/15 via-transparent to-transparent opacity-60" />
+
+            <div className="relative p-12">
+              <div className="flex items-center gap-10">
                 <div className="relative">
-                  <div className="absolute inset-0 bg-gradient-to-br from-orange-400 to-amber-600 rounded-2xl blur-xl opacity-30 group-hover:opacity-50 transition-opacity scale-125" />
-                  <div className="relative p-5 rounded-2xl bg-gradient-to-br from-orange-500/20 to-amber-500/20 border border-orange-400/30 ring-1 ring-orange-500/20 shadow-inner">
-                    <Clock className="w-8 h-8 text-orange-400 drop-shadow-sm" />
+                  <div className="absolute inset-0 bg-orange-400/50 rounded-3xl blur-3xl opacity-20 group-hover:opacity-60 transition-all duration-700 scale-150" />
+                  <div className="relative p-7 rounded-3xl bg-orange-500/10 border border-orange-400/30 shadow-inner group-hover:border-orange-500/50 transition-colors duration-700">
+                    <Clock className="w-12 h-12 text-orange-400 drop-shadow-glow-sm" />
                   </div>
                 </div>
                 <div>
-                  <p className="text-base text-white/90 font-medium mb-1 tracking-wide">Pending Amount</p>
-                  <p className="text-4xl md:text-5xl font-bold text-white tracking-tight number-display drop-shadow-md">
+                  <p className="text-sm text-muted-foreground font-black mb-3 uppercase tracking-[0.3em]">Pending Exposure</p>
+                  <p className="text-6xl md:text-7xl font-black text-foreground tracking-tighter number-display drop-shadow-glow">
                     {formatCurrency(stats?.pendingAmount || 0)}
                   </p>
                 </div>
@@ -433,7 +433,7 @@ export default function Dashboard() {
         <motion.div variants={itemVariants}>
           <div className="glass-card overflow-hidden">
             {/* Header */}
-            <div className="p-6 border-b border-white/[0.06]">
+            <div className="p-6 border-b border-border/50">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <div className="p-2.5 rounded-xl bg-gradient-to-br from-primary/15 to-accent/15 border border-primary/20">
@@ -463,7 +463,7 @@ export default function Dashboard() {
                 <div className="text-center py-12">
                   <div className="relative inline-block mb-5">
                     <div className="absolute inset-0 bg-muted/30 rounded-2xl blur-xl" />
-                    <div className="relative w-20 h-20 rounded-2xl bg-muted/30 flex items-center justify-center border border-white/[0.06]">
+                    <div className="relative w-20 h-20 rounded-2xl bg-muted/30 flex items-center justify-center border border-border/50">
                       <Zap className="w-10 h-10 text-muted-foreground/50" />
                     </div>
                   </div>
@@ -489,50 +489,51 @@ export default function Dashboard() {
                     >
                       <Link to={`/requests/${request.id}`} className="block">
                         <motion.div
-                          whileHover={{ x: 4 }}
-                          transition={{ duration: 0.2 }}
-                          className="group relative flex items-center justify-between p-4 rounded-xl bg-white/[0.02] hover:bg-white/[0.04] border border-transparent hover:border-white/[0.06] transition-all duration-300"
+                          whileHover={{ x: 8, scale: 1.005 }}
+                          transition={{ duration: 0.3, ease: "smooth" }}
+                          className="group relative flex items-center justify-between p-5 rounded-2xl bg-muted/5 hover:bg-muted/30 border border-border/30 hover:border-border shadow-sm hover:shadow-elevation-2 transition-all duration-500"
                         >
                           {/* Left accent */}
                           <div className={cn(
-                            "absolute left-0 top-1/2 -translate-y-1/2 w-1 h-8 rounded-r-full transition-all duration-300",
-                            request.status === "APPROVED" ? "bg-success" :
-                              request.status.startsWith("REJECTED") ? "bg-destructive" : "bg-warning",
-                            "opacity-40 group-hover:opacity-100 group-hover:h-10"
+                            "absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-10 rounded-r-full transition-all duration-500 shadow-glow-sm",
+                            request.status === "APPROVED" ? "bg-success shadow-success/40" :
+                              request.status.startsWith("REJECTED") ? "bg-destructive shadow-destructive/40" : "bg-warning shadow-warning/40",
+                            "opacity-20 group-hover:opacity-100 group-hover:h-14"
                           )} />
 
-                          <div className="flex-1 min-w-0 pl-4">
-                            <div className="flex items-center gap-3 mb-1.5 flex-wrap">
-                              <span className="text-sm font-semibold text-foreground">
+                          <div className="flex-1 min-w-0 pl-6">
+                            <div className="flex items-center gap-4 mb-2 flex-wrap">
+                              <span className="text-sm font-bold text-foreground tracking-wider">
                                 {request.requestNumber}
                               </span>
                               <span
                                 className={cn(
-                                  "px-2.5 py-0.5 text-xs rounded-full font-medium border",
+                                  "px-3 py-1 text-[10px] uppercase tracking-widest rounded-full font-bold border",
                                   statusColors[request.status]
                                 )}
                               >
                                 {statusLabels[request.status]}
                               </span>
                             </div>
-                            <p className="text-sm text-muted-foreground truncate">
+                            <p className="text-sm text-muted-foreground group-hover:text-foreground/80 transition-colors truncate pr-4">
                               {request.purpose}
                             </p>
                           </div>
-                          <div className="text-right ml-4 flex items-center gap-4">
+                          <div className="text-right ml-4 flex items-center gap-6">
                             <div>
-                              <p className="font-semibold text-foreground number-display">
+                              <p className="text-2xl font-black text-foreground number-display tracking-tight">
                                 {formatCurrency(request.amount)}
                               </p>
-                              <p className="text-xs text-muted-foreground/70">
+                              <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">
                                 {new Date(request.createdAt).toLocaleDateString("en-GB", {
                                   day: "numeric",
-                                  month: "short"
+                                  month: "short",
+                                  year: "numeric"
                                 })}
                               </p>
                             </div>
-                            <div className="p-2 rounded-lg bg-white/[0.02] group-hover:bg-primary/10 transition-colors">
-                              <ArrowRight className="w-4 h-4 text-muted-foreground/40 group-hover:text-primary transition-colors" />
+                            <div className="p-3 rounded-xl bg-muted/10 border border-border/30 group-hover:bg-primary/20 group-hover:border-primary/30 transition-all duration-500">
+                              <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary transition-colors" />
                             </div>
                           </div>
                         </motion.div>

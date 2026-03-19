@@ -1,10 +1,25 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Mail, ArrowRight, Loader2, Shield, Sparkles, Lock } from "lucide-react";
+import { Mail, ArrowRight, Loader2, Shield, Sparkles, Lock, Sun, Moon } from "lucide-react";
 import { authClient } from "@/lib/auth-client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { useTheme } from "@/components/ThemeProvider";
+
+
+function LoginThemeToggle() {
+  const { theme, toggleTheme } = useTheme();
+  return (
+    <button
+      onClick={toggleTheme}
+      className="p-2 rounded-lg hover:bg-muted/60 text-muted-foreground hover:text-foreground transition-all duration-300"
+      title={theme === "dark" ? "Switch to Light Mode" : "Switch to Cyber Mode"}
+    >
+      {theme === "dark" ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+    </button>
+  );
+}
 
 export default function Login() {
   const navigate = useNavigate();
@@ -51,7 +66,13 @@ export default function Login() {
           alt="Cinematic Background"
           className="w-full h-full object-cover animate-ken-burns opacity-60"
         />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/50 to-black/30" /> {/* Cinematic gradient overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-background via-background/80 to-background/40" />
+      </div>
+
+      {/* Ambient glow effects */}
+      <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">
+        <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-primary/20 rounded-full blur-[120px] mix-blend-screen animate-pulse-soft" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-accent/20 rounded-full blur-[120px] mix-blend-screen animate-pulse-soft delay-1000" />
       </div>
 
       {/* Left Panel - Branding & Visuals (Hidden on mobile) */}
@@ -62,28 +83,29 @@ export default function Login() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            <div className="relative p-10 backdrop-blur-md rounded-3xl border border-white/10 bg-black/60 shadow-2xl">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary to-blue-600 flex items-center justify-center shadow-lg shadow-blue-500/20 mb-6">
-                <img src="/logo.png" alt="Logo" className="w-full h-full object-cover rounded-2xl opacity-90" />
+            <div className="relative p-10 backdrop-blur-3xl rounded-3xl glass-card shadow-2xl">
+              <div className="relative w-20 h-20 rounded-2xl bg-white dark:bg-slate-950 p-1 flex items-center justify-center shadow-lg shadow-primary/20 mb-8 transform hover:rotate-6 transition-transform duration-500">
+                <img src="/logo.png" alt="Logo" className="w-full h-full object-contain" />
+                <div className="absolute inset-0 bg-primary/20 blur-xl opacity-0 hover:opacity-100 transition-opacity" />
               </div>
-              <h1 className="text-5xl font-bold text-white mb-6 leading-tight tracking-tight">
+              <h1 className="text-6xl font-black text-foreground mb-8 leading-tight tracking-tighter">
                 Dewaks <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 to-cyan-300">Engineering</span>
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-primary to-accent">Engineering</span>
               </h1>
-              <p className="text-lg text-blue-100/80 leading-relaxed font-light">
-                Advanced cashflow and operational request management for high-performance teams.
+              <p className="text-xl text-muted-foreground leading-relaxed font-medium">
+                Next-generation liquidity management for enterprise excellence.
               </p>
 
               <div className="mt-8 flex items-center gap-4">
                 <div className="flex -space-x-3">
                   {[1, 2, 3].map(i => (
-                    <div key={i} className="w-10 h-10 rounded-full border-2 border-black/50 bg-zinc-800 flex items-center justify-center text-xs font-bold text-white/50">
+                    <div key={i} className="w-10 h-10 rounded-full border-2 border-background bg-muted flex items-center justify-center text-xs font-bold text-muted-foreground">
                       U{i}
                     </div>
                   ))}
                 </div>
-                <div className="text-sm text-blue-200/60">
-                  <span className="text-white font-semibold">1,000+</span> requests processed
+                <div className="text-sm text-muted-foreground">
+                  <span className="text-foreground font-semibold">1,000+</span> requests processed
                 </div>
               </div>
             </div>
@@ -100,64 +122,75 @@ export default function Login() {
           className="w-full max-w-md space-y-8 my-auto"
         >
           <div className="text-center lg:text-left">
-            <h2 className="text-3xl font-bold text-white tracking-tight">Welcome Back</h2>
-            <p className="text-blue-200/80 mt-2">Enter your credentials to access the portal.</p>
+            <h2 className="text-3xl font-bold text-foreground tracking-tight">Welcome Back</h2>
+            <p className="text-muted-foreground mt-2">Enter your credentials to access the portal.</p>
           </div>
 
-          <div className="glass-card p-8 border-white/10 bg-black/60 shadow-2xl shadow-black/50 backdrop-blur-xl">
-            <form onSubmit={handleLogin} className="space-y-5">
-              <div className="space-y-2">
-                <label className="text-sm font-medium text-white ml-1">Email Address</label>
+          <div className="glass-card p-10 shadow-elevation-3 animate-scale-in">
+            <form onSubmit={handleLogin} className="space-y-6">
+              <div className="space-y-3">
+                <label className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Terminal ID</label>
                 <div className="relative group">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-primary transition-colors" />
+                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-all duration-500" />
                   <Input
                     type="email"
-                    placeholder="name@company.com"
+                    placeholder="access@dewaks.com"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-primary/50 focus:ring-primary/20 rounded-xl transition-all"
+                    className="pl-12 h-14 bg-background/50 border-input text-foreground placeholder-muted-foreground focus:border-primary/50 focus:ring-primary/20 rounded-2xl transition-all duration-500"
                   />
                 </div>
               </div>
 
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <div className="flex items-center justify-between">
-                  <label className="text-sm font-medium text-white ml-1">Password</label>
-                  <Link to="/forgot-password" className="text-xs text-primary hover:text-accent transition-colors">Forgot password?</Link>
+                  <label className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground ml-1">Secure Key</label>
+                  <Link to="/forgot-password" size="sm" className="text-xs font-black text-primary hover:text-accent transition-colors uppercase tracking-widest">Forgot?</Link>
                 </div>
                 <div className="relative group">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-zinc-400 group-focus-within:text-primary transition-colors" />
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-muted-foreground group-focus-within:text-primary transition-all duration-500" />
                   <Input
                     type="password"
                     placeholder="••••••••"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="pl-12 h-12 bg-white/5 border-white/10 text-white placeholder:text-zinc-500 focus:border-primary/50 focus:ring-primary/20 rounded-xl transition-all"
+                    className="pl-12 h-14 bg-background/50 border-input text-foreground placeholder-muted-foreground focus:border-primary/50 focus:ring-primary/20 rounded-2xl transition-all duration-500"
                   />
                 </div>
               </div>
 
               {error && (
-                <div className="p-3 rounded-lg bg-red-500/20 border border-red-500/30 text-red-200 text-sm text-center">
+                <motion.div
+                  initial={{ opacity: 0, y: -10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-destructive text-sm font-bold text-center"
+                >
                   {error}
-                </div>
+                </motion.div>
               )}
 
-              <Button type="submit" disabled={isLoading} className="w-full h-12 rounded-xl bg-gradient-to-r from-primary to-accent hover:opacity-90 transition-opacity font-semibold text-white shadow-lg shadow-primary/20">
-                {isLoading ? <Loader2 className="w-5 h-5 animate-spin" /> : "Sign In"}
+              <Button type="submit" disabled={isLoading} className="btn-glow w-full h-14 bg-gradient-to-r from-primary to-accent text-white shadow-glow-md rounded-2xl">
+                {isLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : (
+                  <span className="flex items-center gap-2 font-black uppercase tracking-widest">
+                    Initialize Session <ArrowRight className="w-5 h-5" />
+                  </span>
+                )}
               </Button>
             </form>
           </div>
 
-          <p className="text-center text-sm text-blue-200/60">
-            Don't have an account? <Link to="/signup" className="text-primary hover:text-accent font-medium transition-colors">Sign up</Link>
+          <p className="text-center text-sm font-medium text-muted-foreground">
+            Unauthorized? <Link to="/signup" className="text-primary hover:text-accent font-black transition-colors">Request Access</Link>
           </p>
 
         </motion.div>
 
         {/* Footer */}
-        <div className="mt-8 text-center text-xs text-white/30">
-          &copy; {new Date().getFullYear()} Dewaks Engineering. Powered by <span className="text-white/50 font-medium">NexuByte Technologies</span>.
+        <div className="mt-12 text-center flex items-center justify-center gap-4">
+          <span className="text-[10px] font-black uppercase tracking-[0.3em] text-muted-foreground">
+            &copy; {new Date().getFullYear()} Dewaks Engineering &bull; Pure Performance
+          </span>
+          <LoginThemeToggle />
         </div>
       </div>
     </div>
