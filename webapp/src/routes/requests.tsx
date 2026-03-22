@@ -99,6 +99,8 @@ export default function Requests() {
         );
       } else if (statusFilter === "approved") {
         filtered = filtered.filter((r) => r.status === "APPROVED");
+      } else if (statusFilter === "disbursed") {
+        filtered = filtered.filter((r) => r.status === "DISBURSED");
       } else if (statusFilter === "rejected") {
         filtered = filtered.filter(
           (r) =>
@@ -119,6 +121,13 @@ export default function Requests() {
   };
 
   const getStatusIcon = (status: string) => {
+    if (status === "DISBURSED") {
+      return (
+        <div className="p-2 rounded-lg bg-cyan-500/10 border border-cyan-500/20">
+          <CheckCircle2 className="w-4 h-4 text-cyan-500" />
+        </div>
+      );
+    }
     if (status === "APPROVED") {
       return (
         <div className="p-2 rounded-lg bg-success/10 border border-success/20">
@@ -232,6 +241,7 @@ export default function Requests() {
               <SelectItem value="all">All Statuses</SelectItem>
               <SelectItem value="pending">Pending</SelectItem>
               <SelectItem value="approved">Approved</SelectItem>
+              <SelectItem value="disbursed">Disbursed</SelectItem>
               <SelectItem value="rejected">Rejected</SelectItem>
             </SelectContent>
           </Select>
@@ -278,6 +288,7 @@ export default function Requests() {
                     {/* Left status indicator */}
                     <div className={cn(
                       "absolute left-0 top-0 bottom-0 w-1 transition-all duration-300",
+                      request.status === "DISBURSED" ? "bg-cyan-500" :
                       request.status === "APPROVED" ? "bg-success" :
                         request.status.startsWith("REJECTED") ? "bg-destructive" : "bg-warning",
                       "opacity-40 group-hover:opacity-100"
@@ -286,6 +297,7 @@ export default function Requests() {
                     {/* Hover glow */}
                     <div className={cn(
                       "absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-500 pointer-events-none",
+                      request.status === "DISBURSED" ? "bg-gradient-to-r from-cyan-500/5 via-transparent to-transparent" :
                       request.status === "APPROVED" ? "bg-gradient-to-r from-success/5 via-transparent to-transparent" :
                         request.status.startsWith("REJECTED") ? "bg-gradient-to-r from-destructive/5 via-transparent to-transparent" :
                           "bg-gradient-to-r from-warning/5 via-transparent to-transparent"

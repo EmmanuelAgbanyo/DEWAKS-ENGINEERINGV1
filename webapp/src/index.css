@@ -333,6 +333,20 @@
     box-shadow: 0 0 20px -6px hsl(0 72% 55% / 0.25);
   }
 
+  /* Disbursed Status - Premium Cyan/Purple Glow */
+  .badge-disbursed {
+    @apply border;
+    background-color: hsl(190 90% 50% / 0.12);
+    color: hsl(190 90% 45%);
+    border-color: hsl(190 90% 50% / 0.3);
+    box-shadow: 0 0 20px -6px hsl(190 90% 50% / 0.4);
+    text-shadow: 0 0 8px hsl(190 90% 50% / 0.3);
+  }
+  
+  .dark .badge-disbursed {
+    color: hsl(190 90% 60%);
+  }
+
   /* Soft glow effects */
   .glow-primary {
     box-shadow:

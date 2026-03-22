@@ -78,7 +78,7 @@ export default function RequestDetail() {
     });
   };
 
-  const handleReview = async (action: "approve" | "reject") => {
+  const handleReview = async (action: "approve" | "reject" | "disburse") => {
     if (action === "reject" && !comment.trim()) {
       setShowRejectModal(true);
       return;
@@ -91,7 +91,12 @@ export default function RequestDetail() {
       const now = new Date().toISOString();
       const updates: Partial<DBCashRequest> = {};
 
-      if (action === "approve") {
+      if (action === "disburse") {
+        updates.status = "DISBURSED";
+        updates.disbursedId = uid;
+        updates.disbursedName = userProfile.name;
+        updates.disbursedAt = now;
+      } else if (action === "approve") {
         if (userRole === UserRole.ADMIN && request?.status === CashRequestStatus.PENDING_ADMIN) {
           updates.status = "PENDING_MANAGER";
           updates.adminId = uid;
@@ -155,6 +160,14 @@ export default function RequestDetail() {
     return false;
   };
 
+  const canDisburse = () => {
+    if (!request || !userRole) return false;
+    return (
+      (userRole === UserRole.ADMIN || userRole === UserRole.MANAGER) &&
+      request.status === CashRequestStatus.APPROVED
+    );
+  };
+
   const canEditRequest = () => {
     if (!request || !userRole || !userId) return false;
     return (
@@ -169,6 +182,13 @@ export default function RequestDetail() {
   };
 
   const getStatusIcon = (status: string) => {
+    if (status === "DISBURSED") {
+      return (
+        <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center shadow-[0_0_15px_hsl(190,90%,50%,0.2)]">
+          <CheckCircle2 className="w-6 h-6 text-cyan-400" />
+        </div>
+      );
+    }
     if (status === "APPROVED") {
       return (
         <div className="w-12 h-12 rounded-2xl bg-emerald-500/20 border border-emerald-500/30 flex items-center justify-center">
@@ -383,6 +403,21 @@ export default function RequestDetail() {
               Approval Timeline
             </h3>
             <div className="space-y-4">
+              {request.disbursedAt && (
+                <div className="flex gap-4 p-4 rounded-xl bg-cyan-500/5 border border-cyan-500/30 shadow-[0_0_20px_hsl(190,90%,50%,0.05)]">
+                  <div className="w-12 h-12 rounded-2xl bg-cyan-500/20 border border-cyan-500/30 flex items-center justify-center shadow-[0_0_15px_hsl(190,90%,50%,0.2)] shrink-0">
+                    <CheckCircle2 className="w-6 h-6 text-cyan-400" />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-semibold text-foreground">
+                      Disbursed
+                    </p>
+                    <p className="text-sm text-cyan-400/80">
+                      by {request.disbursedName} • {formatDate(request.disbursedAt)}
+                    </p>
+                  </div>
+                </div>
+              )}
               {request.adminId && (
                 <div className="flex gap-4 p-4 rounded-xl bg-secondary/20 border border-border/50">
                   <div
@@ -445,6 +480,38 @@ export default function RequestDetail() {
                   </div>
                 </div>
               )}
+            </div>
+          </motion.div>
+        )}
+
+        {/* Disburse Action */}
+        {canDisburse() && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="glass-card p-6 border-2 border-cyan-500/30 shadow-[0_0_30px_hsl(190,90%,50%,0.05)]"
+          >
+            <h3 className="text-lg font-semibold text-foreground mb-5 flex items-center gap-2">
+              <Banknote className="w-5 h-5 text-cyan-400" />
+              Disburse Funds
+            </h3>
+            <div className="flex flex-col sm:flex-row gap-4 justify-between sm:items-center">
+               <p className="text-muted-foreground max-w-lg">
+                 Mark this approved request as successfully disbursed. This action indicates the money has been completely transferred to the requester's account.
+               </p>
+               <Button
+                  onClick={() => handleReview("disburse")}
+                  disabled={isSubmitting}
+                  className="bg-cyan-500 hover:bg-cyan-400 text-black font-bold shadow-lg shadow-cyan-500/30 shrink-0"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                  ) : (
+                    <CheckCircle2 className="w-4 h-4 mr-2" />
+                  )}
+                  Mark as Disbursed
+                </Button>
             </div>
           </motion.div>
         )}

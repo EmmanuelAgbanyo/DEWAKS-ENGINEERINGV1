@@ -15,6 +15,7 @@ import {
   ArrowUpRight,
   Zap,
   BarChart3,
+  Banknote,
 } from "lucide-react";
 import { DashboardLayout } from "@/components/DashboardLayout";
 import { Button } from "@/components/ui/button";
@@ -193,6 +194,17 @@ export default function Dashboard() {
       iconBg: "bg-red-500/20",
       glowClass: "group-hover:shadow-[0_0_40px_-10px_rgba(239,68,68,0.3)]",
     },
+    {
+      label: "Disbursed",
+      value: stats?.disbursedRequests || 0,
+      icon: Banknote,
+      color: "text-cyan-400",
+      bgColor: "bg-cyan-500/10",
+      borderColor: "border-cyan-500/20",
+      gradient: "from-cyan-500/20 to-cyan-600/5",
+      iconBg: "bg-cyan-500/20",
+      glowClass: "group-hover:shadow-[0_0_40px_-10px_rgba(34,211,238,0.3)]",
+    },
   ];
 
   const containerVariants = {
@@ -218,8 +230,8 @@ export default function Dashboard() {
               <div className="h-5 w-80 shimmer rounded-lg" />
             </div>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5">
-            {[1, 2, 3, 4].map((i) => (
+          <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-5">
+            {[1, 2, 3, 4, 5].map((i) => (
               <div key={i} className="h-40 shimmer rounded-2xl" />
             ))}
           </div>
@@ -336,7 +348,7 @@ export default function Dashboard() {
         {/* Stats Grid */}
         <motion.div
           variants={itemVariants}
-          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-5"
+          className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-5"
         >
           {statCards.map((stat, index) => (
             <motion.div
@@ -362,8 +374,11 @@ export default function Dashboard() {
                     <p className="text-xs font-black uppercase tracking-[0.2em] text-muted-foreground group-hover:text-muted-foreground/80 transition-colors">
                       {stat.label}
                     </p>
-                    <div className="flex items-baseline gap-3">
-                      <p className="text-6xl font-black text-foreground tracking-tighter number-display drop-shadow-glow-sm">
+                    <div className="flex items-baseline gap-3 min-w-0 w-full overflow-hidden">
+                      <p 
+                        className="text-4xl lg:text-5xl font-black text-foreground tracking-tighter number-display drop-shadow-glow-sm truncate pb-1"
+                        title={String(stat.value)}
+                      >
                         {stat.value}
                       </p>
                     </div>
@@ -414,9 +429,12 @@ export default function Dashboard() {
                     <Wallet className="w-12 h-12 text-primary drop-shadow-glow-sm" />
                   </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground font-black mb-3 uppercase tracking-[0.3em]">Total Volume</p>
-                  <p className="text-6xl md:text-7xl font-black text-foreground tracking-tighter number-display drop-shadow-glow">
+                <div className="min-w-0 flex-1 overflow-hidden pr-2">
+                  <p className="text-sm md:text-xs xl:text-sm text-muted-foreground font-black mb-3 uppercase tracking-[0.3em] truncate">Total Volume</p>
+                  <p 
+                    className="text-3xl sm:text-4xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-foreground tracking-tighter number-display drop-shadow-glow truncate pb-1"
+                    title={formatCurrency(stats?.totalAmount || 0)}
+                  >
                     {formatCurrency(stats?.totalAmount || 0)}
                   </p>
                 </div>
@@ -442,9 +460,12 @@ export default function Dashboard() {
                     <Clock className="w-12 h-12 text-orange-400 drop-shadow-glow-sm" />
                   </div>
                 </div>
-                <div>
-                  <p className="text-sm text-muted-foreground font-black mb-3 uppercase tracking-[0.3em]">Pending Exposure</p>
-                  <p className="text-6xl md:text-7xl font-black text-foreground tracking-tighter number-display drop-shadow-glow">
+                <div className="min-w-0 flex-1 overflow-hidden pr-2">
+                  <p className="text-sm md:text-xs xl:text-sm text-muted-foreground font-black mb-3 uppercase tracking-[0.3em] truncate">Pending Exposure</p>
+                  <p 
+                    className="text-3xl sm:text-4xl md:text-3xl lg:text-4xl xl:text-5xl font-black text-foreground tracking-tighter number-display drop-shadow-glow truncate pb-1"
+                    title={formatCurrency(stats?.pendingAmount || 0)}
+                  >
                     {formatCurrency(stats?.pendingAmount || 0)}
                   </p>
                 </div>
@@ -520,6 +541,7 @@ export default function Dashboard() {
                           {/* Left accent */}
                           <div className={cn(
                             "absolute left-0 top-1/2 -translate-y-1/2 w-1.5 h-10 rounded-r-full transition-all duration-500 shadow-glow-sm",
+                            request.status === "DISBURSED" ? "bg-cyan-500 shadow-cyan-500/40" :
                             request.status === "APPROVED" ? "bg-success shadow-success/40" :
                               request.status.startsWith("REJECTED") ? "bg-destructive shadow-destructive/40" : "bg-warning shadow-warning/40",
                             "opacity-20 group-hover:opacity-100 group-hover:h-14"
@@ -544,8 +566,11 @@ export default function Dashboard() {
                             </p>
                           </div>
                           <div className="text-right ml-4 flex items-center gap-6">
-                            <div>
-                              <p className="text-2xl font-black text-foreground number-display tracking-tight">
+                            <div className="min-w-0 text-right">
+                              <p 
+                                className="text-xl sm:text-2xl font-black text-foreground number-display tracking-tight truncate max-w-[140px] sm:max-w-xs"
+                                title={formatCurrency(request.amount)}
+                              >
                                 {formatCurrency(request.amount)}
                               </p>
                               <p className="text-[10px] font-bold text-muted-foreground uppercase tracking-widest mt-1">

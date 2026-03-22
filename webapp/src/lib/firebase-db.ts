@@ -144,6 +144,11 @@ export interface DBCashRequest {
   managerComment?: string | null;
   managerReviewedAt?: string | null;
 
+  // Disbursement
+  disbursedId?: string | null;
+  disbursedName?: string | null;
+  disbursedAt?: string | null;
+
   createdAt: string;
   updatedAt: string;
 }
@@ -225,6 +230,45 @@ export async function deleteAllCashRequests(): Promise<void> {
 }
 
 // ═══════════════════════════════════════════════════════════════
+// INCOMES
+// ═══════════════════════════════════════════════════════════════
+
+export interface DBIncome {
+  amount: number;
+  source: string; // e.g., Sales, Investment, Loan, Internal
+  method: string; // e.g., BANK_TRANSFER, MOMO, CASH
+  description?: string | null;
+  recordedBy: string; // User ID
+  recordedByName: string; // denormalized
+  createdAt: string;
+}
+
+/** Create a new income record */
+export async function createIncome(data: Omit<DBIncome, "createdAt">): Promise<string> {
+  const now = new Date().toISOString();
+  const newRef = push(ref(db, "incomes"));
+  await set(newRef, {
+    ...data,
+    createdAt: now,
+  });
+  return newRef.key!;
+}
+
+/** Subscribe to all incomes (real-time) */
+export function subscribeToAllIncomes(
+  callback: (incomes: Record<string, DBIncome>) => void
+): Unsubscribe {
+  return onValue(ref(db, "incomes"), (snap) => {
+    callback(snap.exists() ? snap.val() : {});
+  });
+}
+
+/** Delete an income record */
+export async function deleteIncome(id: string): Promise<void> {
+  await remove(ref(db, `incomes/${id}`));
+}
+
+// ═══════════════════════════════════════════════════════════════
 // DASHBOARD STATS (computed from cash requests)
 // ═══════════════════════════════════════════════════════════════
 
@@ -250,12 +294,16 @@ export function subscribeToDashboardStats(
         (r) => r.status === "PENDING_ADMIN" || r.status === "PENDING_MANAGER"
       ).length,
       approvedRequests: filtered.filter((r) => r.status === "APPROVED").length,
+      disbursedRequests: filtered.filter((r) => r.status === "DISBURSED").length,
       rejectedRequests: filtered.filter(
         (r) => r.status === "REJECTED_BY_ADMIN" || r.status === "REJECTED_BY_MANAGER"
       ).length,
       totalAmount: filtered.reduce((sum, r) => sum + r.amount, 0),
       pendingAmount: filtered
         .filter((r) => r.status === "PENDING_ADMIN" || r.status === "PENDING_MANAGER")
+        .reduce((sum, r) => sum + r.amount, 0),
+      disbursedAmount: filtered
+        .filter((r) => r.status === "DISBURSED")
         .reduce((sum, r) => sum + r.amount, 0),
     };
 

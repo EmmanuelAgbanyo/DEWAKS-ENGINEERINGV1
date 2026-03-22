@@ -12,6 +12,7 @@ export const CashRequestStatus = {
   PENDING_ADMIN: "PENDING_ADMIN",
   PENDING_MANAGER: "PENDING_MANAGER",
   APPROVED: "APPROVED",
+  DISBURSED: "DISBURSED",
   REJECTED_BY_ADMIN: "REJECTED_BY_ADMIN",
   REJECTED_BY_MANAGER: "REJECTED_BY_MANAGER",
 } as const;
@@ -82,6 +83,12 @@ export interface CashRequest {
   } | null;
   managerComment: string | null;
   managerReviewedAt: string | null;
+  disbursed: {
+    id: string;
+    name: string;
+    email: string;
+  } | null;
+  disbursedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -100,9 +107,11 @@ export interface DashboardStats {
   totalRequests: number;
   pendingRequests: number;
   approvedRequests: number;
+  disbursedRequests: number;
   rejectedRequests: number;
   totalAmount: number;
   pendingAmount: number;
+  disbursedAmount: number;
 }
 
 // Status display helpers
@@ -110,6 +119,7 @@ export const statusLabels: Record<string, string> = {
   PENDING_ADMIN: "Pending Admin Review",
   PENDING_MANAGER: "Pending Manager Approval",
   APPROVED: "Approved",
+  DISBURSED: "Disbursed",
   REJECTED_BY_ADMIN: "Rejected by Admin",
   REJECTED_BY_MANAGER: "Rejected by Manager",
 };
@@ -118,6 +128,7 @@ export const statusColors: Record<string, string> = {
   PENDING_ADMIN: "badge-pending",
   PENDING_MANAGER: "badge-pending",
   APPROVED: "badge-approved",
+  DISBURSED: "badge-disbursed",
   REJECTED_BY_ADMIN: "badge-rejected",
   REJECTED_BY_MANAGER: "badge-rejected",
 };
